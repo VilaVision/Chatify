@@ -1,4 +1,4 @@
-# Chatify
+# Chatipy
 
 Chatify is an AI-powered website and text scanner that crawls websites or local HTML files, extracts their content and structure, and generates chatbot-ready Q&A pairs using Google Gemini AI. The project features a modern frontend for user interaction and a robust Python backend for crawling, extraction, analytics, and training data generation.
 
