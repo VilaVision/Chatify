@@ -8,14 +8,14 @@ Chatify is an AI-powered website and text scanner that crawls websites or local 
 - **Deep Crawling:** Multi-threaded crawler explores all internal links and resources.
 - **Content Extraction:** Extracts text, code blocks, and page structure from HTML.
 - **Analytics & Preprocessing:** Cleans, organizes, and summarizes extracted data.
-- **AI Q&A Generation:** Uses Gemini AI to generate chatbot training data from website content.
+- **AI Q&A Generation:** Uses openai(default) or any other ai. to generate chatbot training data from website content.
 - **Downloadable Results:** Download extracted text and structure as JSON files.
-- **Modern UI:** Clean, responsive frontend built with React and vanilla HTML/CSS.
+- **Modern UI:** Clean, responsive frontend built vanilla HTML/CSS.
 
 ## Project Structure
 
 ```
-frontend/         # React app and static HTML/CSS for the UI
+frontend/         # static HTML/CSS for the UI for test
 backend/
   app.py          # Flask API server
   utils/          # Crawling, extraction, and file utilities
@@ -38,8 +38,8 @@ backend/
 ### Prerequisites
 
 - Python 3.8+
-- Node.js (for frontend)
-- Gemini API key (set `GEMINI_API_KEY` environment variable)
+- HTML/CSS
+- OpenAI API key (set `OpenAI_API_KEY` environment variable)
 
 ### Backend Setup
 
@@ -53,8 +53,7 @@ python app.py
 
 ```sh
 cd frontend
-npm install
-npm start
+start index.html
 ```
 
 ### Usage
@@ -87,9 +86,9 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ## Acknowledgements
 
-- **Google Gemini AI:** For powerful AI-driven Q&A generation.
+- **OpenAI:** For powerful AI-driven Q&A generation.
 - **Flask:** For the backend API framework.
-- **React:** For building the modern frontend interface.
+- **HTML/CSS:** For building the modern frontend interface.
 - **Beautiful Soup & Requests:** For web scraping and crawling capabilities.
 
 ---
