@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Luma - Website/Text Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-area">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="20" fill="#1976d2"/>
+                <text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="20" font-family="Segoe UI, Arial" dy=".3em">L</text>
+            </svg>
+            <span class="brand">Luma</span>
+        </div>
+        <h2 class="subtitle">Scan a Website or Local HTML File</h2>
+        <form id="scanForm" class="scan-form" autocomplete="off">
+            <label for="source">URL or Local Path</label>
+            <input type="text" name="source" id="source" placeholder="e.g. https://example.com or C:\site\index.html" required>
+            <button type="submit">
+                <span>🔍</span> Scan
+            </button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+
+    <footer>
+        <span>Powered by <b>Luma</b> &mdash; AI Website/Text Scanner</span>
+    </footer>
+
+    <script>
+        document.getElementById("scanForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const source = document.getElementById("source").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<div class="loading"><span class="spinner"></span>Scanning... Please wait.</div>`;
+
+            fetch("http://127.0.0.1:5000/api/scan", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ source_url: source })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>${data.message}</strong></p>
+                            <div class="download-links">
+                                <a href="http://127.0.0.1:5000/download/text.json" download>⬇️ Download Text</a>
+                                <a href="http://127.0.0.1:5000/download/structure.json" download>⬇️ Download Structure</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(err => {
+                resultDiv.innerHTML = `<div class="error">Request failed: ${err}</div>`;
+            });
+        });
+    </script>
+</body>
+</html>

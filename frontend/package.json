@@ -1,0 +1,11 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "dom": "^0.0.3",
+    "react": "^19.1.0",
+    "react-scripts": "^5.0.1",
+    "router": "^2.2.0"
+  }
+}
