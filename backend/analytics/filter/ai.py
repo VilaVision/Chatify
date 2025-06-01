@@ -12,7 +12,7 @@ class GeminiAIQAGenerator:
             api_key (str): Gemini API key. If not provided, will look for GEMINI_API_KEY env variable
         """
         if api_key:
-            self.api_key = api_key  # <-- Use the parameter, do NOT hardcode
+            self.api_key = api_key  
         else:
             api_key = os.getenv('GEMINI_API_KEY')
             if not api_key:
