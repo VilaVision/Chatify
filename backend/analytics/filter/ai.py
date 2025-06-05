@@ -2,6 +2,7 @@ import json
 import os
 import requests
 import time
+from utils.data_handler import load_processed_pages, save_qa_pair
 
 class GeminiAIQAGenerator:
     def __init__(self, api_key=None):
@@ -257,6 +258,19 @@ Generate {num_questions} Q&A pairs now:
                 print(f"Category: {qa.get('category', 'N/A')}")
         else:
             print("No Q&A pairs were generated.")
+
+    def generate_chatbot_training_data_db(self, questions_per_page=3):
+        pages = load_processed_pages()
+        for i, page in enumerate(pages):
+            page_data = {"url": page.url, "text": page.text}
+            qa_pairs = self.generate_qa_pairs(page_data, questions_per_page)
+            for qa in qa_pairs:
+                save_qa_pair(
+                    question=qa.get("question"),
+                    answer=qa.get("answer"),
+                    category=qa.get("category"),
+                    source_url=page.url
+                )
 
 def main():
     # Load from processed_data and save to final_data

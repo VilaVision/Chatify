@@ -3,6 +3,8 @@ import os
 from urllib.parse import urlparse, unquote
 import re
 from pathlib import Path
+from utils.data_handler import load_scraped_pages, save_processed_page
+import datetime
 
 def clean_url(url):
     """Remove tracking parameters, fragments, and normalize the URL."""
@@ -290,6 +292,16 @@ def create_summary_file(base_path, created_files, original_data):
     
     with open(base_path / "STRUCTURE_SUMMARY.md", 'w', encoding='utf-8') as f:
         f.write(summary_content)
+
+def process_scraped_to_processed():
+    scraped_pages = load_scraped_pages()
+    for page in scraped_pages:
+        url = page.url
+        raw_html = page.raw_html
+        # Use your existing extraction logic here
+        text, code_blocks, structure = extract_structure_and_text(raw_html)
+        processed_at = datetime.datetime.utcnow().isoformat()
+        save_processed_page(url, text, structure, processed_at)
 
 if __name__ == "__main__":
     # Replace with your actual JSON file path if needed

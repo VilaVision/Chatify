@@ -1,0 +1,55 @@
+{
+  "root": "https://www.teachforindia.org",
+  "domain": "www.teachforindia.org",
+  "crawl_info": {
+    "started_at": "2025-06-04T20:51:23.562851",
+    "completed_at": "2025-06-04T15:21:23.994323",
+    "crawler_config": {
+      "delay": 1.0,
+      "max_workers": 20,
+      "timeout": 20,
+      "max_pages": null,
+      "use_selenium": false,
+      "respect_robots": true
+    }
+  },
+  "pages": {},
+  "structure": {},
+  "extracted_data": {
+    "emails": [],
+    "phones": [],
+    "social_links": [],
+    "forms": [],
+    "external_links": [],
+    "api_endpoints": [],
+    "page_content": {},
+    "metadata": {}
+  },
+  "files": {},
+  "statistics": {
+    "pages_crawled": 0,
+    "total_files": 0,
+    "files_by_type": {},
+    "data_extraction": {
+      "emails_found": 0,
+      "phones_found": 0,
+      "social_links_found": 0,
+      "forms_found": 0,
+      "external_links_found": 0,
+      "api_endpoints_found": 0
+    },
+    "content_stats": {
+      "total_words": 0,
+      "pages_with_content": 0,
+      "average_words_per_page": 0.0
+    },
+    "performance": {
+      "errors": 0,
+      "redirects": 0,
+      "elapsed_time": 0.4314718246459961,
+      "pages_per_second": 0.0,
+      "unique_urls_found": 1
+    },
+    "domain": "www.teachforindia.org"
+  }
+}

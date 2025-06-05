@@ -45,13 +45,17 @@
             .then(res => res.json())
             .then(data => {
                 if (data.message) {
+                    let downloadLinks = `
+                        <div class="download-links">
+                            <a href="http://127.0.0.1:5000/download/primary_data/text.json" download>⬇️ Download Text</a>
+                            <a href="http://127.0.0.1:5000/download/primary_data/code.json" download>⬇️ Download Code</a>
+                            <a href="http://127.0.0.1:5000/download/primary_data/navigation.json" download>⬇️ Download Navigation</a>
+                        </div>
+                    `;
                     resultDiv.innerHTML = `
                         <div class="success">
                             <p><strong>${data.message}</strong></p>
-                            <div class="download-links">
-                                <a href="http://127.0.0.1:5000/download/text.json" download>⬇️ Download Text</a>
-                                <a href="http://127.0.0.1:5000/download/structure.json" download>⬇️ Download Structure</a>
-                            </div>
+                            ${downloadLinks}
                         </div>
                     `;
                 } else {
