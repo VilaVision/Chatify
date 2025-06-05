@@ -42,7 +42,7 @@ class GeminiAIQAGenerator:
             print(f"Error: Invalid JSON format in {file_path}")
             return None
 
-    def generate_qa_pairs(self, page_data, num_questions=5):
+    def generate_qa_pairs(self, page_data, num_questions=20):
         """
         Generate Q&A pairs from page data using Gemini AI
 
@@ -288,7 +288,7 @@ def main():
     generator.generate_chatbot_training_data(
         input_file=input_file,
         output_file=output_file,
-        questions_per_page=4  # Generate 4 Q&A pairs per page
+        questions_per_page=50  # Generate 50 Q&A pairs per page
     )
 
 if __name__ == "__main__":

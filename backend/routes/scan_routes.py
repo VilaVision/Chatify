@@ -87,7 +87,7 @@ def scan_route():
 
         # 5. Generate Q&A pairs using Gemini AI and save to DB and file
         generator = GeminiAIQAGenerator()
-        generator.generate_chatbot_training_data_db(questions_per_page=4)
+        generator.generate_chatbot_training_data_db(questions_per_page=50)
         final_data_dir = os.path.join(data_dir, "final_data")
         os.makedirs(final_data_dir, exist_ok=True)
         qa_json_path = os.path.join(final_data_dir, "qa.json")

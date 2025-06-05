@@ -1090,7 +1090,7 @@ class run_crawler:
         self.session.close()
 
 def run_enhanced_crawler(base_url: str, delay: float = 1.0, max_workers: int = 20, 
-                        timeout: int = 20, max_pages: int = None, use_selenium: bool = False,
+                        timeout: int = 20, max_pages: int = 500, use_selenium: bool = False,
                         respect_robots: bool = True, extract_emails: bool = True,
                         extract_phones: bool = True, extract_social_links: bool = True,
                         save_data: bool = True) -> dict:
