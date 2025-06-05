@@ -175,3 +175,18 @@ footer {
     padding-bottom: 18px;
     letter-spacing: 0.2px;
 }
+
+#three-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    background: #232837;
+}
+::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 4px;
+}

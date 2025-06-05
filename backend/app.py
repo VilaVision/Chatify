@@ -23,6 +23,10 @@ init_db()
 from routes.scan_routes import scan_blueprint
 app.register_blueprint(scan_blueprint)
 
+# Register chatbot API
+from chatbot.api import chatbot_blueprint
+app.register_blueprint(chatbot_blueprint)
+
 # Optionally: add download endpoint for files
 from flask import send_from_directory
 

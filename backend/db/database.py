@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base
+from .models import Base, ScrapedPage, ProcessedPage, QAPair  # adjust as needed
 from sqlalchemy.exc import IntegrityError
 
 # Always use an absolute path for the database file
@@ -36,3 +36,17 @@ def upsert_processed_page(session, url, text, structure, processed_at):
     except IntegrityError:
         session.rollback()
         print(f"Duplicate entry for URL: {url}")
+
+def clear_all_tables():
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        session.query(ScrapedPage).delete()
+        session.query(ProcessedPage).delete()
+        session.query(QAPair).delete()
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error clearing tables: {e}")
+    finally:
+        session.close()

@@ -1,5 +1,6 @@
 from db.database import SessionLocal
 from db.models import ScrapedPage, ProcessedPage, QAPair
+import os
 
 def save_scraped_page(url, raw_html, scraped_at):
     from db.database import SessionLocal
@@ -76,3 +77,14 @@ def clear_scraped_pages():
     session.query(ScrapedPage).delete()
     session.commit()
     session.close()
+
+def clean_data_folders():
+    """Delete all files in primary_data, processed_data, and final_data folders."""
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../Data'))
+    for subfolder in ["primary_data", "processed_data", "final_data"]:
+        folder = os.path.join(base_dir, subfolder)
+        if os.path.exists(folder):
+            for filename in os.listdir(folder):
+                file_path = os.path.join(folder, filename)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)

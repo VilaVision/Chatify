@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "from": "https://www.pinegap.ai/privacy-policy",
+    "link": "https://edpb.europa.eu/about-edpb/about-edpb/members_en"
+  },
+  {
+    "from": "https://www.pinegap.ai/privacy-policy",
+    "link": "https://ico.org.uk/global/contact-us/"
+  },
+  {
+    "from": "https://www.pinegap.ai/privacy-policy",
+    "link": "https://www.priv.gc.ca/en/privacy-topics/information-and-advice-for-individuals/reporting-concerns-and-filing-complaints/"
+  }
+]

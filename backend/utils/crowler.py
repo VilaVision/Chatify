@@ -20,7 +20,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from backend.utils.data_handler import save_scraped_page
+from utils.data_handler import save_scraped_page
 
 class run_crawler:
     def __init__(self, base_url: str, delay: float = 1.0, max_workers: int = 20, 

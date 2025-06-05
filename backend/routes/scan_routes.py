@@ -14,9 +14,11 @@ from utils.data_handler import (
     load_qa_pairs,
     export_qa_pairs_to_json,
     save_scraped_page,
-    save_processed_page
+    save_processed_page,
+    clean_data_folders
 )
 from analytics.filter.ai import GeminiAIQAGenerator
+from db.database import clear_all_tables
 import datetime
 
 scan_blueprint = Blueprint('scan', __name__)
@@ -29,6 +31,10 @@ def scan_route():
     if not source_url:
         return jsonify({'error': 'No source URL provided.'}), 400
     try:
+        # Clean previous data
+        clean_data_folders()
+        clear_all_tables()
+
         # 1. Crawl the website
         crawl_result = run_enhanced_crawler(source_url)
         structure = crawl_result['structure']

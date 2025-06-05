@@ -9,3 +9,4 @@ selenium
 webdriver-manager
 sqlalchemy-utils
 flask-sqlalchemy
+sentence-transformers
