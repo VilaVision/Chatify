@@ -15,13 +15,26 @@ Chatify is an AI-powered website and text scanner that crawls websites or local 
 ## Project Structure
 
 ```
-frontend/         # static HTML/CSS for the UI for test
-backend/
-  app.py          # Flask API server
-  utils/          # Crawling, extraction, and file utilities
-  analytics/      # Data cleaning and AI Q&A generation
-  config/         # Data path configuration
-  Data/           # All extracted, processed, and final data
+    A[User/Frontend] -->|POST /api/scan| B[Flask App (app.py)]
+    B --> C[scan_blueprint (scan_routes.py)]
+    C --> D[Clean Data Folders & Clear DB]
+    D --> E[run_enhanced_crawler (crowler.py)]
+    E --> F{For Each Page}
+    F --> G[fetch_html (fetcher.py)]
+    G --> H[extract_structure_and_text (extractor.py)]
+    H --> I[save_scraped_page (data_handler.py)]
+    H --> J[save_processed_page (data_handler.py)]
+    F -->|Extracted Text/Code/Links| K[Aggregate Data]
+    K --> L[Save text.json, code.json, navigation.json]
+    L --> M[run_all_filters (analytics/filters.py)]
+    M --> N[GeminiAIQAGenerator (ai.py)]
+    N --> O[Generate Q&A Pairs]
+    O --> P[Save qa.json & Import to qa_data.db]
+    P --> Q[Return Scan Complete Response]
+    Q -->|User Downloads or Chat| R[Download/Chatbot/Search Endpoints]
+    R --> S[qa_data.db]
+    S -->|/api/chat or /api/search| T[Chatbot Blueprint (chatbot/api.py)]
+    T --> U[Return Answer or Search Results]
 ```
 
 ## How It Works
