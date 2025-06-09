@@ -4,38 +4,399 @@
     <meta charset="UTF-8">
     <title>Luma - Website/Text Scanner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-info h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .message {
+            max-width: 70%;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message-bubble {
+            padding: 15px 20px;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.bot .message-bubble {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            color: #333;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 2px 10px rgba(25,118,210,0.3);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            max-width: 100%;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #source {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        #source:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 0 3px rgba(25,118,210,0.1);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(25,118,210,0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-top: 2px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .download-links {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .download-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(40,167,69,0.3);
+        }
+
+        .download-links a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.4);
+        }
+
+        .error {
+            color: #dc3545;
+            background: rgba(220,53,69,0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            margin: 50px 0;
+        }
+
+        .welcome-message h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .welcome-message p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .chat-header {
+                padding: 15px;
+            }
+            
+            .header-info h1 {
+                font-size: 20px;
+            }
+            
+            .logo {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo-area">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <circle cx="20" cy="20" r="20" fill="#1976d2"/>
-                <text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="20" font-family="Segoe UI, Arial" dy=".3em">L</text>
-            </svg>
-            <span class="brand">Luma</span>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="logo">L</div>
+            <div class="header-info">
+                <h1>Luma Scanner</h1>
+                <p>AI-powered website and text analysis</p>
+            </div>
         </div>
-        <h2 class="subtitle">Scan a Website or Local HTML File</h2>
-        <form id="scanForm" class="scan-form" autocomplete="off">
-            <label for="source">URL or Local Path</label>
-            <input type="text" name="source" id="source" placeholder="e.g. https://example.com or C:\site\index.html" required>
-            <button type="submit">
-                <span>🔍</span> Scan
-            </button>
-        </form>
-        <div id="result" class="result"></div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h2>👋 Welcome to Luma Scanner!</h2>
+                <p>I can help you scan and analyze websites or local HTML files.<br>
+                Just paste a URL or file path below to get started.</p>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <form id="scanForm" class="input-container">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="source" 
+                        placeholder="Enter URL (https://example.com) or file path (C:\site\index.html)..."
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+                <button type="submit" class="send-button" id="sendButton">
+                    <span>🚀</span>
+                </button>
+            </form>
+        </div>
     </div>
 
-    <footer>
-        <span>Powered by <b>Luma</b> &mdash; AI Website/Text Scanner</span>
-    </footer>
-
     <script>
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function addMessage(content, isUser = false, isLoading = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            
+            // Remove welcome message if it exists
+            if (welcomeMessage && messagesContainer.children.length > 0) {
+                welcomeMessage.style.display = 'none';
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.innerHTML = content;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = getCurrentTime();
+            
+            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(timeDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        function updateMessage(messageElement, content) {
+            const bubble = messageElement.querySelector('.message-bubble');
+            bubble.innerHTML = content;
+        }
+
         document.getElementById("scanForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            const source = document.getElementById("source").value;
-            const resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = `<div class="loading"><span class="spinner"></span>Scanning... Please wait.</div>`;
+            
+            const source = document.getElementById("source").value.trim();
+            const sendButton = document.getElementById("sendButton");
+            const sourceInput = document.getElementById("source");
+            
+            if (!source) return;
+            
+            // Add user message
+            addMessage(source, true);
+            
+            // Clear input
+            sourceInput.value = '';
+            
+            // Disable button and show loading
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<div class="spinner"></div>';
+            
+            // Add loading message
+            const loadingMessage = addMessage(`
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Analyzing your request... This may take a moment.</span>
+                </div>
+            `);
 
             fetch("http://127.0.0.1:5000/api/scan", {
                 method: "POST",
@@ -45,26 +406,58 @@
             .then(res => res.json())
             .then(data => {
                 if (data.message) {
-                    let downloadLinks = `
+                    const downloadLinks = `
                         <div class="download-links">
-                            <a href="http://127.0.0.1:5000/download/primary_data/text.json" download>⬇️ Download Text</a>
-                            <a href="http://127.0.0.1:5000/download/primary_data/code.json" download>⬇️ Download Code</a>
-                            <a href="http://127.0.0.1:5000/download/primary_data/navigation.json" download>⬇️ Download Navigation</a>
+                            <a href="http://127.0.0.1:5000/download/primary_data/text.json" download>📄 Text Data</a>
+                            <a href="http://127.0.0.1:5000/download/primary_data/code.json" download>💻 Code Data</a>
+                            <a href="http://127.0.0.1:5000/download/primary_data/navigation.json" download>🧭 Navigation</a>
                         </div>
                     `;
-                    resultDiv.innerHTML = `
+                    
+                    updateMessage(loadingMessage, `
                         <div class="success">
-                            <p><strong>${data.message}</strong></p>
+                            <p><strong>✅ ${data.message}</strong></p>
+                            <p>Your scan is complete! You can download the extracted data using the links below:</p>
                             ${downloadLinks}
                         </div>
-                    `;
+                    `);
                 } else {
-                    resultDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    updateMessage(loadingMessage, `
+                        <div class="error">
+                            <strong>❌ Scan Failed</strong><br>
+                            ${data.error || 'An unexpected error occurred. Please try again.'}
+                        </div>
+                    `);
                 }
             })
             .catch(err => {
-                resultDiv.innerHTML = `<div class="error">Request failed: ${err}</div>`;
+                updateMessage(loadingMessage, `
+                    <div class="error">
+                        <strong>🚫 Connection Error</strong><br>
+                        Unable to connect to the scanning service. Please check if the server is running and try again.
+                    </div>
+                `);
+            })
+            .finally(() => {
+                // Re-enable button
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<span>🚀</span>';
             });
+        });
+
+        // Auto-resize input and handle Enter key
+        const sourceInput = document.getElementById('source');
+        
+        sourceInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('scanForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            sourceInput.focus();
         });
     </script>
 </body>
