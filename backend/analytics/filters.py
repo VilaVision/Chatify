@@ -1,48 +1,92 @@
 import os
-from analytics.filter.cleaner import create_folder_structure_from_links
-from analytics.filter.ai import GeminiAIQAGenerator
+import json
+import re
+
+from analytics.filter.ai import QAGenerator
+
+def clean_text_to_bullets(text):
+    """
+    Cleans raw text to bullet-point format.
+    Strips tags, extra spaces, and converts repetitive items to bullets.
+    """
+    if not text:
+        return ""
+
+    # Remove HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+
+    # Normalize whitespace
+    text = re.sub(r'\s+', ' ', text)
+
+    # Break into lines if nav-like repeated structure is found
+    lines = re.split(r'(?:\\n|\\r|[\u2022•])', text)
+    lines = [line.strip() for line in lines if line.strip()]
+
+    # Remove duplicates while preserving order
+    seen = set()
+    bullets = []
+    for line in lines:
+        if line not in seen:
+            bullets.append(f"- {line}")
+            seen.add(line)
+
+    return "\n".join(bullets)
 
 def run_all_filters(data_dir):
     """
-    Runs the cleaner filter (folder structure creation with preprocessing)
-    for both text.json and navigation.json, saving output in processed_data.
-    Also generates Q&A pairs using Gemini AI and saves them in final_data.
-    Args:
-        data_dir (str): Base data directory (e.g., backend/Data)
+    1. Loads extracted_dataset.json
+    2. Cleans and restructures into: {url, title, text (as bullet points)}
+    3. Saves cleaned version
+    4. Generates Q&A pairs using Gemini
     """
-    # Input paths (from primary_data)
-    text_json = os.path.join(data_dir, 'primary_data', 'text.json')
-    navigation_json = os.path.join(data_dir, 'primary_data', 'navigation.json')
+    print("🚀 Starting full data processing pipeline...")
+    
+    extracted_path = os.path.join("extracted_dataset.json")
+    cleaned_output_path = os.path.join(data_dir, "processed_data", "cleaned_text.json")
+    qa_output_path = os.path.join(data_dir, "final_data", "qa.json")
 
-    # Output directory (processed_data)
-    processed_data_dir = os.path.join(data_dir, 'processed_data')
-    os.makedirs(processed_data_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(cleaned_output_path), exist_ok=True)
+    os.makedirs(os.path.dirname(qa_output_path), exist_ok=True)
 
-    # Folder structure output for text.json
-    site_structure_text = os.path.join(processed_data_dir, 'site_structure_text')
-    create_folder_structure_from_links(text_json, site_structure_text)
+    # Step 1: Load raw extracted data
+    if not os.path.exists(extracted_path):
+        raise FileNotFoundError("extracted_dataset.json not found.")
 
-    # Folder structure output for navigation.json
-    site_structure_nav = os.path.join(processed_data_dir, 'site_structure_navigation')
-    create_folder_structure_from_links(navigation_json, site_structure_nav)
+    with open(extracted_path, 'r', encoding='utf-8') as f:
+        raw_data = json.load(f)
 
-    print("Cleaner filter executed successfully for both text.json and navigation.json.")
+    # Step 2: Clean and restructure
+    cleaned_data = []
+    for page in raw_data.get("pages", []):
+        url = page.get("url")
+        title = page.get("title", "")
+        raw_text = page.get("text", "")
 
-    # Q&A Generation using Gemini AI
-    final_data_dir = os.path.join(data_dir, 'final_data')
-    os.makedirs(final_data_dir, exist_ok=True)
-    input_file = os.path.join(processed_data_dir, "cleaned_text.json")
-    output_file = os.path.join(final_data_dir, "qa.json")
+        cleaned_text = clean_text_to_bullets(raw_text)
 
-    generator = GeminiAIQAGenerator()
+        cleaned_data.append({
+            "url": url,
+            "title": title,
+            "cleaned_text": cleaned_text
+        })
+
+    # Step 3: Save cleaned text
+    with open(cleaned_output_path, 'w', encoding='utf-8') as f:
+        json.dump(cleaned_data, f, indent=2, ensure_ascii=False)
+
+    print(f"✅ Cleaned text saved to {cleaned_output_path}")
+
+    # Step 4: Run Gemini Q&A generation
+    print("🧠 Running Q&A generation...")
+    generator = qagenerator()
     generator.generate_chatbot_training_data(
-        input_file=input_file,
-        output_file=output_file,
+        input_file=cleaned_output_path,
+        output_file=qa_output_path,
         questions_per_page=4
     )
-    print("Q&A generation completed and saved to final_data/qa.json.")
+
+    print(f"✅ Q&A generation saved to {qa_output_path}")
 
 if __name__ == "__main__":
-    # Example usage: set your base data directory here
     base_data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Data'))
     run_all_filters(base_data_dir)

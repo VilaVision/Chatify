@@ -1,3 +1,5 @@
+
+
 from sentence_transformers import SentenceTransformer, util
 from .qa_db import get_all_qa_pairs
 
