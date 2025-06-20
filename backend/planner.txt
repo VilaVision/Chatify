@@ -1,7 +1,0 @@
-
-crowling   Done
-scraping,  done 
-saving     done 
-analytics module :  loads the dataset scraped ---> Seperates HTML ---> Seperates css ---> saves in different json files ---> extracts text in the format of url , tag and text ---> saves it in seperate json files ---> create a a sql database ---> saves the text data in this database
-Ai module : loads the data from text_data.json ---> then ai analysis ---> arranges the data in a sequece like data with similar tag near by ---> data is arranged in a proper sequence ---> saves the data in jason file ---> uses ai to generate question answer on that data ---> then data is saved in another json file with link, tag, quetion answer 
-chatbot UI Module: loads the dataset 

@@ -3,340 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chatify - Convert your website to chatbot</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .chatbot-wrapper {
-      width: 100%;
-      max-width: 480px;
-      height: 90vh;
-      min-height: 600px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 24px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
-                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .chatbot-wrapper::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    }
-
-    .chat-header {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      padding: 24px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .chat-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: shine 3s infinite;
-    }
-
-    @keyframes shine {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-
-    .header-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .logo {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      background: linear-gradient(45deg, #fff, #f0f8ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .tagline {
-      font-size: 0.9rem;
-      opacity: 0.9;
-      font-weight: 300;
-    }
-
-    .chat-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
-    }
-
-    .chat-area::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-area::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    .chat-area::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
-    }
-
-    .welcome-message {
-      text-align: center;
-      padding: 32px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .welcome-message h2 {
-      font-size: 1.5rem;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
-
-    .welcome-message p {
-      opacity: 0.8;
-      line-height: 1.6;
-    }
-
-    .chat-message {
-      max-width: 85%;
-      padding: 16px 20px;
-      border-radius: 20px;
-      line-height: 1.6;
-      position: relative;
-      word-wrap: break-word;
-      animation: messageSlide 0.3s ease-out;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    @keyframes messageSlide {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .bot {
-      align-self: flex-start;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .message-links {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .message-links a {
-      color: #4fc3f7;
-      text-decoration: none;
-      padding: 8px 12px;
-      background: rgba(79, 195, 247, 0.1);
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      display: inline-block;
-    }
-
-    .message-links a:hover {
-      background: rgba(79, 195, 247, 0.2);
-      transform: translateX(4px);
-    }
-
-    .input-area {
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      gap: 12px;
-    }
-
-    .input-area input {
-      flex: 1;
-      padding: 16px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 25px;
-      outline: none;
-      font-size: 14px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-    }
-
-    .input-area input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .input-area input:focus {
-      border-color: rgba(102, 126, 234, 0.6);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .input-area button {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border: none;
-      padding: 16px 20px;
-      border-radius: 25px;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-      min-width: 60px;
-    }
-
-    .input-area button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .input-area button:active {
-      transform: translateY(0);
-    }
-
-    .typing-indicator {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      padding: 8px 0;
-    }
-
-    .typing-indicator span {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 50%;
-      animation: typing 1.4s infinite ease-in-out;
-    }
-
-    .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes typing {
-      0%, 80%, 100% {
-        opacity: 0.3;
-        transform: scale(0.8);
-      }
-      40% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .status-indicator {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 12px;
-      height: 12px;
-      background: #4caf50;
-      border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-      }
-    }
-
-    @media (max-width: 500px) {
-      body {
-        padding: 10px;
-      }
-      
-      .chatbot-wrapper {
-        height: 95vh;
-        border-radius: 16px;
-      }
-    }
-  </style>
+  <title>Chatify - Website Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="chatbot-wrapper">
-    <div class="status-indicator"></div>
-    <div class="chat-header">
-      <div class="header-content">
-        <div class="logo">🤖 Chatify</div>
-        <div class="tagline">AI-powered website analyzer</div>
-      </div>
+<body class="bg-gray-900 text-white h-screen flex flex-col">
+
+  <!-- Header -->
+  <div class="bg-gray-800 p-4 text-center shadow-md">
+    <h1 class="text-2xl font-bold text-pink-500">🤖 Chatify</h1>
+    <p class="text-sm text-gray-300">AI-powered Website Analyzer</p>
+  </div>
+
+  <!-- Chat Area -->
+  <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4">
+    <div class="bg-gray-800 p-3 rounded-lg text-sm">
+      <span class="font-bold">Chatbot:</span> Welcome! Enter a website URL or path for analysis.
     </div>
-    
-    <div class="chat-area" id="chatArea">
-      <div class="welcome-message">
-        <h2>👋 Welcome to Chatify!</h2>
-        <p>I can analyze websites and HTML files for you.<br>
-        Just paste a URL or file path below to get started.</p>
-      </div>
-    </div>
-    
-    <div class="input-area">
-      <input type="text" id="userInput" placeholder="https://example.com or C:\site\index.html" autocomplete="off" />
-      <button id="sendBtn">🚀</button>
-    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="flex p-4 bg-gray-800">
+    <input id="userInput" type="text" class="flex-1 p-2 bg-gray-700 text-white rounded-lg"
+      placeholder="https://example.com or C:\\site\\index.html" />
+    <button id="sendBtn" class="ml-3 bg-pink-600 text-white rounded-lg px-4 py-2">Send</button>
   </div>
 
   <script>
@@ -344,29 +33,25 @@
     const userInput = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
 
-    function addMessage(content, sender = "bot") {
+    function addMessage(message, sender = "bot") {
       const msg = document.createElement("div");
-      msg.className = `chat-message ${sender}`;
-      msg.innerHTML = content;
+      msg.className = `p-3 rounded-lg text-sm ${sender === "user" ? "bg-gray-800" : "bg-gray-700"}`;
+      msg.innerHTML = `<span class="font-bold">${sender === "user" ? "User" : "Chatbot"}:</span> ${message}`;
       chatArea.appendChild(msg);
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    function showTyping() {
-      const typing = document.createElement("div");
-      typing.className = "chat-message bot";
-      typing.id = "typing";
-      typing.innerHTML = `
-        <div class="typing-indicator">
-          <span></span><span></span><span></span>
-        </div>`;
-      chatArea.appendChild(typing);
+    function showDownloadLink(downloadUrl) {
+      const linkBlock = `
+        <div class="p-3 rounded-lg bg-gray-700 text-sm mt-3">
+          <span class="font-bold">Chatbot:</span> ✅ Analysis complete!<br />
+          <a href="http://127.0.0.1:8000${downloadUrl}" download class="mt-2 inline-block text-pink-400 hover:underline">
+            📦 Download Chatbot Package
+          </a>
+        </div>
+      `;
+      chatArea.insertAdjacentHTML("beforeend", linkBlock);
       chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    function removeTyping() {
-      const typing = document.getElementById("typing");
-      if (typing) chatArea.removeChild(typing);
     }
 
     function handleSubmit() {
@@ -377,33 +62,24 @@
       userInput.value = "";
       sendBtn.disabled = true;
 
-      showTyping();
+      addMessage("🔍 Analyzing, please wait...");
 
-      fetch("http://127.0.0.1:5000/api/scan", {
+      fetch("http://127.0.0.1:8000/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ source_url: input })
       })
         .then(res => res.json())
         .then(data => {
-          removeTyping();
-          if (data.message) {
-            const successMessage = `✅ ${data.message}`;
-            const linksHtml = `
-              <div class="message-links">
-                <a href='http://127.0.0.1:5000/download/primary_data/text.json'>📄 Download Text Data</a>
-                <a href='http://127.0.0.1:5000/download/primary_data/code.json'>💻 Download Code Data</a>
-                <a href='http://127.0.0.1:5000/download/primary_data/navigation.json'>🧭 Download Navigation Data</a>
-              </div>`;
-            addMessage(successMessage + linksHtml);
+          if (data.message && data.download_url) {
+            addMessage(`✅ ${data.message}`);
+            showDownloadLink(data.download_url);
           } else {
-            addMessage("❌ Something went wrong. Please check your input and try again.");
+            addMessage("❌ Could not process the input.");
           }
         })
-        .catch(error => {
-          removeTyping();
-          console.error('Error:', error);
-          addMessage("🚫 Unable to connect to server. Please ensure the backend is running on port 5000.");
+        .catch(() => {
+          addMessage("🚫 Server error. Ensure backend is running on port 8000.");
         })
         .finally(() => {
           sendBtn.disabled = false;
@@ -411,16 +87,10 @@
     }
 
     sendBtn.addEventListener("click", handleSubmit);
-
-    userInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSubmit();
-      }
+    userInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleSubmit();
     });
-
-    // Auto-focus input on load
-    userInput.focus();
   </script>
+
 </body>
 </html>
