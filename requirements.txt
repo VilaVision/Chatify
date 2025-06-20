@@ -7,3 +7,5 @@ pydantic>=2.7.1
 python-dotenv>=1.0.1
 flask>=3.0.3
 sqlite-utils>=3.36
+flask
+gunicorn
