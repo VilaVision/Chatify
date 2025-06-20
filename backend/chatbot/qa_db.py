@@ -1,52 +1,41 @@
 import sqlite3
-import os
-from utils.data_handler import load_qa_pairs
 
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Data', 'qa_data.db'))
+DB_PATH = r"C:\Users\alokp\Chatify\backend\chatbot\chatify.db"
 
-def init_qa_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+def create_and_insert():
     conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS qa_pairs (
+    cursor = conn.cursor()
+
+    # Create table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS faq_info (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            question TEXT NOT NULL,
-            answer TEXT NOT NULL,
-            category TEXT,
-            source_url TEXT
+            text TEXT
         )
     ''')
+
+    # Long text sample (you can paste your full dataset here)
+    full_text = """
+- | Eligibility | Selection Process | Placement Cities | Compensation & Benefits
+- “I was fortunate to have experienced an excellent education which enabled me to improve my life.”
+- “I want to make sure all Students get the same experience as me.” – Nandini Kochar, TFI Fellow 2021
+- You are eligible to apply for the 2026 Fellowship cohort if you:
+  - Completed graduation by June/July 2026
+  - Are applying for the first time for the 2026 Fellowship cohort, since July 2025
+  - Are a citizen of India or Overseas Citizen of India(OCI)
+- Do You Need Prior Teaching Experience? No, don't worry.
+- We will provide the essential training needed to set you up for success in your classroom.
+- Got Another Question? Check the FAQ
+- The Fellowship Selection Process:
+  - The Fellow selection process has 2 stages.
+  - It is designed to understand your strengths and motivations for this role.
+  - If you can make it through all the stages, you are on your way towards a life-changing experience.
+    """
+
+    cursor.execute("INSERT INTO faq_info (text) VALUES (?)", (full_text,))
     conn.commit()
     conn.close()
+    print("✅ Data inserted successfully.")
 
-def add_qa_pair(question, answer, category=None, source_url=None):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO qa_pairs (question, answer, category, source_url)
-        VALUES (?, ?, ?, ?)
-    ''', (question, answer, category, source_url))
-    conn.commit()
-    conn.close()
-
-def get_all_qa_pairs():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('SELECT question, answer, category, source_url FROM qa_pairs')
-    rows = c.fetchall()
-    conn.close()
-    return [
-        {"question": q, "answer": a, "category": c, "source_url": s}
-        for q, a, c, s in rows
-    ]
-
-def get_best_answer(user_question):
-    # Simple keyword match; replace with semantic search for better results
-    qa_pairs = load_qa_pairs()
-    user_question_lower = user_question.lower()
-    for qa in qa_pairs:
-        if qa.question.lower() in user_question_lower or user_question_lower in qa.question.lower():
-            return qa.answer
-    # Fallback: return first answer or None
-    return qa_pairs[0].answer if qa_pairs else None
+if __name__ == "__main__":
+    create_and_insert()

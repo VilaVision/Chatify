@@ -1,140 +1,137 @@
 import json
-import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse
 import logging
 import re
+from urllib.parse import urlparse
+
+import requests
+from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
+
 class WebScraper:
-    def __init__(self, json_file='crawled_links.json', output_file='extracted_dataset.json'):
+    def __init__(self,
+                 json_file='crawled_links.json',
+                 output_file='extracted_dataset.json',
+                 raw_output='raw_data.json'):
+        # backward compatibility: output_file refers to text extraction output
         self.json_file = json_file
-        self.output_file = output_file
+        self.text_output = output_file
+        self.raw_output = raw_output
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         }
-        self.skip_extensions = ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.mp4', '.avi', '.mp3')
+        self.skip_ext = ('.pdf', '.jpg', '.jpeg', '.png', '.gif',
+                         '.zip', '.mp4', '.avi', '.mp3')
 
     def load_links(self):
-        """Load links from JSON file"""
         try:
-            with open(self.json_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    return data.get('all_links', [])
-                elif isinstance(data, list):
-                    return data
-                else:
-                    logging.error("Unexpected JSON structure")
-                    return []
-        except FileNotFoundError:
-            logging.error(f"File {self.json_file} not found")
-            return []
-        except json.JSONDecodeError:
-            logging.error(f"Invalid JSON in {self.json_file}")
+            data = json.load(open(self.json_file, encoding='utf-8'))
+        except Exception as e:
+            logging.error(f"Couldn’t load {self.json_file}: {e}")
             return []
 
-    def clean_extracted_text(self, raw_text):
-        """Clean and format raw extracted text for better readability"""
-        if not raw_text:
-            return ""
+        if isinstance(data, dict):
+            for key in ('all_discovered_links', 'crawled_pages', 'all_links'):
+                if key in data and isinstance(data[key], list):
+                    return list({u for u in data[key] if isinstance(u, str)})
+            if 'page_details' in data and isinstance(data['page_details'], dict):
+                return list(data['page_details'].keys())
+            return []
+        if isinstance(data, list):
+            return [u for u in data if isinstance(u, str)]
+        return []
 
-        # Remove extra whitespaces
-        raw_text = re.sub(r'\s+', ' ', raw_text)
+    def clean_text(self, html):
+        text = BeautifulSoup(html, 'html.parser') \
+                       .get_text(separator=' ', strip=True)
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'(Skip to content|Cookie policy|Privacy policy)', '', text, flags=re.I)
+        sents = [s.strip() for s in re.split(r'[.!?]+', text)]
+        sents = [s for s in sents if 20 <= len(s) <= 300]
+        return '. '.join(dict.fromkeys(sents)) + ('.' if sents else '')
 
-        # Split into lines and remove duplicates or very short lines
-        lines = raw_text.split('. ')
-        cleaned_lines = []
-
-        seen = set()
-        for line in lines:
-            line = line.strip()
-            if len(line) >= 30 and line not in seen:  # Minimum 30 characters
-                cleaned_lines.append(f"- {line}")
-                seen.add(line)
-
-        return "\n".join(cleaned_lines)
-
-    def extract_text(self, url):
-        """Extract text from a single URL"""
-        if url.lower().endswith(self.skip_extensions):
-            logging.warning(f"Skipping binary or non-text URL: {url}")
-            return None
-
+    def extract_clean(self, url):
         try:
-            response = requests.get(url, headers=self.headers, timeout=10)
-            response.raise_for_status()
-
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            # Remove unwanted tags
-            for tag in soup(['script', 'style', 'noscript', 'svg', 'meta', 'footer', 'header']):
-                tag.decompose()
-
-            # Extract title
-            title = soup.title.string.strip() if soup.title else 'No Title'
-
-            # Extract and clean visible text
-            raw_text = soup.get_text(separator=' ', strip=True)
-            cleaned_text = self.clean_extracted_text(raw_text)
-
+            r = requests.get(url, headers=self.headers, timeout=15)
+            r.raise_for_status()
+            html = r.text
+            soup = BeautifulSoup(html, 'html.parser')
+            title = ''
+            if soup.title and soup.title.string:
+                title = soup.title.string.strip()
             return {
                 'url': url,
                 'domain': urlparse(url).netloc,
                 'title': title,
-                'text': cleaned_text,
+                'text': self.clean_text(html),
+                'length': len(self.clean_text(html)),
                 'status': 'success'
             }
-
         except Exception as e:
-            logging.error(f"Error extracting from {url}: {e}")
+            logging.warning(f"Clean extract failed ({url}): {e}")
+            return {'url': url, 'domain': urlparse(url).netloc, 'text': '', 'status': 'error'}
+
+    def extract_raw(self, url):
+        try:
+            r = requests.get(url, headers=self.headers, timeout=15)
+            r.raise_for_status()
+            html = r.text
+            soup = BeautifulSoup(html, 'html.parser')
+
+            css = []
+            for tag in soup.find_all(('style', 'link')):
+                if tag.name == 'style':
+                    css.append(tag.get_text())
+                elif tag.name == 'link' and tag.get('rel') == ['stylesheet']:
+                    href = tag.get('href')
+                    if href and not href.startswith('data:'):
+                        try:
+                            css.append(requests.get(
+                                requests.compat.urljoin(url, href),
+                                timeout=10).text)
+                        except: pass
+
+            js = []
+            for tag in soup.find_all('script'):
+                if tag.get('src'):
+                    try:
+                        js.append(requests.get(
+                            requests.compat.urljoin(url, tag['src']),
+                            timeout=10).text)
+                    except: pass
+                elif tag.string:
+                    js.append(tag.string)
+
             return {
                 'url': url,
                 'domain': urlparse(url).netloc,
-                'title': '',
-                'text': '',
-                'status': 'error',
-                'error': str(e)
+                'html': html,
+                'css': '\n'.join(css),
+                'js': '\n'.join(js),
+                'status': 'success'
             }
-
-    def process_all_links(self):
-        """Process all links and extract text"""
-        links = self.load_links()
-        if not links:
-            logging.warning("No links found to process")
-            return []
-
-        logging.info(f"Processing {len(links)} links...")
-        dataset = []
-
-        for i, link in enumerate(links, 1):
-            logging.info(f"[{i}/{len(links)}] Processing: {link}")
-            result = self.extract_text(link)
-            if result:
-                dataset.append(result)
-
-        return dataset
-
-    def save_dataset(self, dataset):
-        """Save dataset to JSON file"""
-        try:
-            with open(self.output_file, 'w', encoding='utf-8') as f:
-                json.dump({"pages": dataset}, f, indent=2, ensure_ascii=False)
-            logging.info(f"Dataset saved to {self.output_file}")
         except Exception as e:
-            logging.error(f"Error saving dataset: {e}")
+            logging.warning(f"Raw extract failed ({url}): {e}")
+            return {'url': url, 'domain': urlparse(url).netloc, 'html': '', 'css': '', 'js': '', 'status': 'error'}
+
+    def save(self, data, path):
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        logging.info(f"Saved {len(data)} records to {path}")
 
     def run(self):
-        """Main execution method"""
-        dataset = self.process_all_links()
-        if dataset:
-            self.save_dataset(dataset)
-            logging.info(f"Completed! Processed {len(dataset)} URLs")
-        else:
-            logging.warning("No data to save")
+        links = self.load_links()
+        if not links:
+            logging.error("No links to process.")
+            return
 
-# Usage
-if __name__ == "__main__":
-    scraper = WebScraper()
-    scraper.run()
+        text_data = [self.extract_clean(u) for u in links]
+        self.save(text_data, self.text_output)
+
+        raw_data = [self.extract_raw(u) for u in links]
+        self.save(raw_data, self.raw_output)
+
+
+if __name__ == '__main__':
+    WebScraper().run()

@@ -1,0 +1,17 @@
+{
+  "base_url": "://cd",
+  "total_pages_crawled": 1,
+  "total_unique_links_discovered": 1,
+  "crawled_pages": [
+    "://://cd"
+  ],
+  "all_discovered_links": [
+    "://://cd"
+  ],
+  "page_details": {},
+  "summary": {
+    "pages_successfully_crawled": 0,
+    "unique_links_found_total": 1,
+    "average_links_per_page": 0
+  }
+}
