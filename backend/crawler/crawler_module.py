@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""
-Recursive Full-Site Web Crawler (Unique URLs Only)
-"""
 
-import requests
-import json
+import os
 import time
+import json
+import requests
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from collections import deque
@@ -43,7 +41,10 @@ class MinimalCrawler:
                 parsed.scheme in ['http', 'https'] and
                 parsed.netloc == self.domain and
                 normalized_url not in self.visited and
-                not url.endswith(('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.svg', '.ico', '.mp4', '.mp3'))
+                not url.lower().endswith((
+                    '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.svg',
+                    '.ico', '.mp4', '.mp3', '.avi', '.webp', '.woff', '.woff2', '.ttf'
+                ))
             )
         except:
             return False
@@ -124,19 +125,18 @@ class MinimalCrawler:
 
     def save_to_json(self, filename="chatpy/backend/data/crawled_links.json"):
         try:
-            unique_visited_urls = sorted(list(self.visited))
-            unique_discovered_urls = sorted(list(self.all_discovered_links))
-            
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+
             output = {
                 "base_url": self.normalize_url(self.base_url),
-                "total_pages_crawled": len(unique_visited_urls),
-                "total_unique_links_discovered": len(unique_discovered_urls),
-                "crawled_pages": unique_visited_urls,
-                "all_discovered_links": unique_discovered_urls,
+                "total_pages_crawled": len(self.visited),
+                "total_unique_links_discovered": len(self.all_discovered_links),
+                "crawled_pages": sorted(list(self.visited)),
+                "all_discovered_links": sorted(list(self.all_discovered_links)),
                 "page_details": self.crawled_data,
                 "summary": {
                     "pages_successfully_crawled": len(self.crawled_data),
-                    "unique_links_found_total": len(unique_discovered_urls),
+                    "unique_links_found_total": len(self.all_discovered_links),
                     "average_links_per_page": round(
                         sum(v['links_count'] for v in self.crawled_data.values()) / len(self.crawled_data), 2
                     ) if self.crawled_data else 0
@@ -148,7 +148,6 @@ class MinimalCrawler:
 
             if self.verbose:
                 print(f"[💾] Data saved to: {filename}")
-                print(f"[📊] Unique URLs saved: {len(unique_discovered_urls)}")
             return filename
         except Exception as e:
             if self.verbose:
@@ -164,16 +163,14 @@ class MinimalCrawler:
         print(f"Total unique URLs discovered: {len(unique_urls)}")
         print(f"Pages successfully crawled: {len(self.visited)}")
         print(f"URLs in queue when stopped: {len(self.queue)}")
-        
-        if self.verbose and len(unique_urls) <= 20:
-            print("\n[🔗] All unique URLs:")
-            for i, url in enumerate(unique_urls, 1):
+
+        if self.verbose:
+            preview = unique_urls[:10] if len(unique_urls) > 20 else unique_urls
+            print(f"\n[🔗] Sample URLs:")
+            for i, url in enumerate(preview, 1):
                 print(f"  {i:2d}. {url}")
-        elif len(unique_urls) > 20:
-            print(f"\n[🔗] First 10 unique URLs:")
-            for i, url in enumerate(unique_urls[:10], 1):
-                print(f"  {i:2d}. {url}")
-            print(f"  ... and {len(unique_urls) - 10} more")
+            if len(unique_urls) > 20:
+                print(f"  ... and {len(unique_urls) - 10} more")
 
 
 def run_crawler(
@@ -202,6 +199,7 @@ def run_crawler(
 
 
 if __name__ == "__main__":
-    print("This script defines a crawler class. To use it, import and call:")
-    print("from crawler.crawler import run_crawler")
+    print("This script defines a crawler class.")
+    print("To use it, import and call:")
+    print("from crawler.crawler_module import run_crawler")
     print("run_crawler('https://example.com', max_pages=10)")
