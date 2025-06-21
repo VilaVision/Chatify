@@ -9,3 +9,5 @@ flask>=3.0.3
 sqlite-utils>=3.36
 flask
 gunicorn
+fastapi
+uvicorn[standard]
