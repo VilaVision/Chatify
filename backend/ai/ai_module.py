@@ -35,9 +35,9 @@ class ChatbotGenerator:
         self.validate_ui = validate_ui
 
         self.input_paths = [text_data_path] if text_data_path else input_paths or [
-            r"C:\\Users\\alokp\\chatpy\\backend\\chatpy\\output\\css_only.json",
-            r"C:\\Users\\alokp\\chatpy\\backend\\chatpy\\output\\html_only.json",
-            r"C:\\Users\\alokp\\chatpy\\backend\\chatpy\\output\\extracted_text_data.json"
+            r"C:\Users\alokp\Chatify\backend\chatpy\output\css_only.json",
+            r"C:\Users\alokp\Chatify\backend\chatpy\output\html_only.json",
+            r"C:\Users\alokp\Chatify\backend\chatpy\output\extracted_text_data.json"
         ]
 
         os.makedirs(output_dir, exist_ok=True)
