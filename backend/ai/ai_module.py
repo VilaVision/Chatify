@@ -150,7 +150,7 @@ class DebuggerAgent:
     def comprehensive_debug(self, code: str, file_type: str) -> Dict[str, Any]:
         """Run all debugging checks"""
         print(f"🔧 Running comprehensive debug for {file_type}...")
-        
+
         debug_results = {
             "file_type": file_type,
             "timestamp": datetime.now().isoformat(),
@@ -164,9 +164,9 @@ class DebuggerAgent:
             self.debug_security(code, file_type),
             self.debug_performance(code, file_type),
             self.debug_accessibility(code, file_type)
-        ]
-        
+        ]   
         debug_results["checks"] = checks
+
         
         # Calculate overall severity
         severities = [check["severity"] for check in checks]
@@ -449,36 +449,56 @@ Wrap in a function or class and make it ready to use.""",
                 sub_category = line.split(":", 1)[1].strip()
         return category, sub_category
 
-    def generate_qa_pairs(self, content_lines: List[str]) -> List[Dict]:
-        print("🤖 Generating Q&A pairs...")
-        self.website_type = self.detect_website_type(content_lines)
-        qa_set = set()
-        qa_list = []
-        
-        for content in content_lines:
-            if len(content) < 20:
-                continue
-            
-            prompt = self.prompts.get('qa_generation', '').format(
+def generate_qa_pairs(self, content_lines: List[str]) -> List[Dict]:
+    print("🤖 Generating Q&A pairs for different visitor scenarios...")
+    self.website_type = self.detect_website_type(content_lines)
+    qa_set = set()
+    qa_list = []
+
+    visitor_personas = [
+        {"label": "normal visitor", "description": "You are a normal visitor browsing the site."},
+        {"label": "blind visitor", "description": "You are a blind visitor using a screen reader to navigate the site."},
+        {"label": "deaf visitor", "description": "You are a deaf visitor who cannot hear audio or video content."},
+        {"label": "physically disabled visitor", "description": "You have limited mobility and cannot use hands or legs. You use assistive technology like voice commands or eye tracking."}
+    ]
+
+    for content in content_lines:
+        if len(content) < 20:
+            continue
+
+        for persona in visitor_personas:
+            prompt = (
+                "As a {persona_label}, analyze the following website content and generate 1-2 question and answer pairs "
+                "that the user might ask while browsing this website. Focus on accessibility, usability, and clarity.\n\n"
+                "Visitor Scenario: {persona_description}\n"
+                "Website Type: {website_type}\n"
+                "Content:\n{content}\n\n"
+                "Format the output as:\n"
+                "Q: <question>\nA: <answer>\n\nRepeat for each question."
+            ).format(
+                persona_label=persona["label"],
+                persona_description=persona["description"],
                 website_type=self.website_type,
                 content=content
             )
+
             response = self.call_AI(prompt)
             qas = self._parse_qa_response(response)
-            
+
             for qa in qas:
-                key = (qa["question"].lower(), qa["answer"].lower())
+                key = (qa["question"].lower(), qa["answer"].lower(), persona["label"])
                 if key not in qa_set:
                     qa_set.add(key)
                     qa_list.append({
                         "question": qa["question"],
                         "answer": qa["answer"],
-                        "website_type": self.website_type
+                        "website_type": self.website_type,
+                        "visitor_type": persona["label"]
                     })
-        
-        self.qa_data = qa_list
-        print(f"✅ Generated {len(qa_list)} Q&A pairs")
-        return qa_list
+
+    self.qa_data = qa_list
+    print(f"✅ Generated {len(qa_list)} Q&A pairs")
+    return qa_list
 
     def _parse_qa_response(self, response: str) -> List[Dict]:
         qas = []
@@ -494,79 +514,150 @@ Wrap in a function or class and make it ready to use.""",
         return qas
 
     def generate_ui(self) -> Dict[str, str]:
-        print("🎨 Generating UI files using model prompts with theme references...")
-        
+        print("🎨 Generating chatbot UI using reference themes and pro-level prompts...")
+
         # Load HTML/CSS references for theme consistency
         html_ref, css_ref = self.load_html_css_references()
-        
+
         # Get UI prompts
         ui_prompts = self.prompts.get('ui_generation', {})
+
         
-        html_prompt = ui_prompts.get('html', '').format(
+    
+        html_prompt = (
+        "You are a top 1% front-end developer. Using the color theme, layout style, and visual references from the given HTML reference, "
+        "generate a professional, accessible, and visually appealing chatbot interface. The chatbot should have:\n"
+        "- A centered layout with header and chat container\n"
+        "- Message bubbles styled differently for user and bot\n"
+        "- Input text box and a 'Send' button at the bottom\n"
+        "- Responsive design for mobile and desktop\n\n"
+        "Website Type: {website_type}\n"
+        "HTML Reference:\n{html_reference}"
+        ).format(
             website_type=self.website_type,
             html_reference=html_ref
         )
-        
-        css_prompt = ui_prompts.get('css', '').format(
-            css_reference=css_ref
-        )
-        
-        js_prompt = ui_prompts.get('js', '').format(
-            qa_data=json.dumps(self.qa_data, indent=2)
-        )
+
+        css_prompt = (
+        "Create a modern, responsive CSS style for a chatbot UI using the color palette and layout references below. "
+        "Ensure:\n"
+        "- Clear visual separation between user and bot messages\n"
+        "- Nice padding, margins, and rounded corners\n"
+        "- Button hover effects\n"
+        "- Mobile responsiveness\n\n"
+        "CSS Reference:\n{css_reference}"
+        ).format(css_reference=css_ref)
+
+        js_prompt = (
+        "Write JavaScript for a chatbot UI that supports:\n"
+        "- Sending messages when user clicks 'Send' or presses Enter\n"
+        "- Displaying both user and bot messages\n"
+        "- Using the following QA data to simulate bot responses\n\n"
+        "The bot should pick a random QA pair and respond with it for now.\n\n"
+        "QA Data:\n{qa_data}"
+        ).format(qa_data=json.dumps(self.qa_data, indent=2))
 
         html = self.call_AI(html_prompt)
         css = self.call_AI(css_prompt)
         js = self.call_AI(js_prompt)
 
-        return {"index.html": html, "style.css": css, "script.js": js}
+        print("✅ Chatbot UI files generated.")
+        return {
+            "index.html": html,
+            "style.css": css,
+            "script.js": js
+       }
 
-    def debug_generated_files(self, ui_files: Dict[str, str]) -> Dict[str, Any]:
-        """Debug all generated files using the debugger agent"""
-        print("🔧 Starting comprehensive debugging of generated files...")
-        
-        debug_results = {}
-        
-        file_type_mapping = {
-            "index.html": "HTML",
-            "style.css": "CSS", 
-            "script.js": "JavaScript"
-        }
-        
-        for filename, content in ui_files.items():
-            file_type = file_type_mapping.get(filename, "Unknown")
-            debug_result = self.debugger.comprehensive_debug(content, file_type)
-            debug_results[filename] = debug_result
-            
-            # Generate fix suggestions
-            fix_suggestions = self.debugger.generate_fix_suggestions(debug_result)
-            debug_result["fix_suggestions"] = fix_suggestions
-        
-        return debug_results
 
-    def select_best_framework(self) -> str:
-        print("🧠 Selecting the best backend framework for chatbot...")
-        mapping = {
-            "portfolio": "Rasa",
-            "ecommerce": "LangChain",
-            "educational": "LlamaIndex",
-            "blog": "LlamaIndex",
-            "business": "CrewAI"
-        }
-        return mapping.get(self.website_type, "Hugging Face + Gradio")
+def debug_generated_files(self, ui_files: Dict[str, str]) -> Dict[str, Any]:
+    """Debug all generated files and produce bug-free corrected versions."""
+    print("🔧 Starting pro-level debugging of generated UI files...")
 
-    def generate_selected_modal_code(self, tool_name: str) -> Dict[str, str]:
-        print(f"🤖 Generating interactive chatbot logic using: {tool_name}")
+    debug_results = {}
 
-        prompt = self.prompts.get('backend_generation', '').format(
-            website_type=self.website_type,
-            tool_name=tool_name,
-            qa_sample=json.dumps(self.qa_data[:5], indent=2)
+    file_type_mapping = {
+        "index.html": "HTML",
+        "style.css": "CSS",
+        "script.js": "JavaScript"
+    }
+
+    for filename, content in ui_files.items():
+        file_type = file_type_mapping.get(filename, "Unknown")
+
+        # Step 1: Run comprehensive debugging using expert-level instructions
+        debug_prompt = (
+            "You are a top 1% frontend developer and code reviewer. "
+            "Analyze the following {file_type} code for any bugs, errors, bad practices, or performance issues. "
+            "Then, rewrite the entire file with all issues fixed, using best practices, accessibility, and clean formatting.\n\n"
+            "File Type: {file_type}\n"
+            "Filename: {filename}\n"
+            "Code:\n{content}"
+        ).format(
+            file_type=file_type,
+            filename=filename,
+            content=content
         )
-        
-        code = self.call_AI(prompt)
-        filename = f"chatbot_{tool_name.lower().replace(' ', '_').replace('+', '').replace('/', '')}.py"
-        return {filename: code}
+
+        # Step 2: Get detailed debug report and fixed code
+        debug_report = self.debugger.comprehensive_debug(content, file_type)
+        fix_suggestions = self.debugger.generate_fix_suggestions(debug_report)
+
+        fixed_code_prompt = (
+            "Now apply all suggested fixes and rewrite the code. "
+            "Ensure there are no syntax errors or logic bugs, and the output is production-ready.\n\n"
+            "File: {filename}\n\n"
+            "Original:\n{content}\n\n"
+            "Fix Suggestions:\n{fix_suggestions}"
+        ).format(
+            filename=filename,
+            content=content,
+            fix_suggestions=json.dumps(fix_suggestions, indent=2)
+        )
+
+        corrected_code = self.call_AI(fixed_code_prompt)
+
+        # Step 3: Store results
+        debug_results[filename] = {
+            "file_type": file_type,
+            "original": content,
+            "debug_report": debug_report,
+            "fix_suggestions": fix_suggestions,
+            "corrected_code": corrected_code
+        }
+
+        print(f"✅ Debugged and fixed: {filename}")
+
+    return debug_results
+
+
+def generate_selected_modal_code(self, tool_name: str) -> Dict[str, str]:
+    print(f"🤖 Generating interactive chatbot backend using: {tool_name}")
+
+    backend_prompt = (
+        "You are an expert backend engineer. Create a complete backend chatbot server using {tool_name} for a {website_type} website.\n\n"
+        "Requirements:\n"
+        "- Use the tool/framework efficiently (like LangChain, Rasa, LlamaIndex, Hugging Face, etc.)\n"
+        "- Accept user messages via an API (e.g., FastAPI, Flask route)\n"
+        "- Load chatbot logic and serve Q&A responses\n"
+        "- Provide dummy bot replies using the sample Q&A provided\n"
+        "- Make the server ready for integration with a frontend chatbot UI\n\n"
+        "Sample Q&A data (simulate reply logic using this):\n{qa_sample}\n\n"
+        "Output only the backend code in Python."
+    ).format(
+        website_type=self.website_type,
+        tool_name=tool_name,
+        qa_sample=json.dumps(self.qa_data[:5], indent=2)
+    )
+
+    # Call AI to get the backend code
+    code = self.call_AI(backend_prompt)
+
+    # Clean and construct filename
+    filename_base = tool_name.lower().replace(' ', '_').replace('+', '').replace('/', '').replace('-', '_')
+    filename = f"chatbot_backend_{filename_base}.py"
+
+    print(f"✅ Generated backend logic for {tool_name}")
+    return {filename: code}
 
     def save_data(self, ui_files: Dict[str, str]) -> None:
         print("💾 Saving data...")
@@ -583,8 +674,8 @@ Wrap in a function or class and make it ready to use.""",
         # Save debug results
         debug_path = os.path.join(self.output_dir, "debug_results.json")
         with open(debug_path, "w", encoding="utf-8") as f:
-            json.dump(debug_results, f, indent=2)
-        print(f"✅ Saved debug results: {debug_path}")
+            json.dump(debug_results, f, indent=2)        
+        print(f"✅ Saved debug results: {debug_path}")   
 
         # Save UI files
         for filename, content in ui_files.items():
@@ -601,7 +692,7 @@ Wrap in a function or class and make it ready to use.""",
                 for check in debug_info['checks']:
                     if check['issues']:
                         print(f"   {check['type'].capitalize()}: {check['severity']} severity")
-
+        
         # Generate and save backend code
         selected_tool = self.select_best_framework()
         modal_code = self.generate_selected_modal_code(selected_tool)
@@ -634,8 +725,8 @@ You are a QA validator. Review the following Q&A dataset and point out:
 - Answers that don't match the questions
 
 JSON:
-{json.dumps(self.qa_data, indent=2)}
-"""
+{json.dumps(self.qa_data, indent=2)}"""
+
         report = self.call_AI(debug_prompt)
         print("\n⚠️ Q&A Debug Report:")
         print(report or "✅ No major issues found.")
@@ -656,7 +747,7 @@ JSON:
     def run_pipeline(self):
         self.print_day_reason()
         print("🚀 Running enhanced chatbot generator pipeline with debugging...")
-        
+
         lines = self.load_dataset()
         if not lines:
             return
@@ -664,7 +755,7 @@ JSON:
         self.generate_qa_pairs(lines)
         ui = self.generate_ui()
         self.save_data(ui)
-        self.debug_and_validate()
+        self.debug_and_validate()    
         
         print("🎉 Enhanced pipeline with debugging complete!")
 

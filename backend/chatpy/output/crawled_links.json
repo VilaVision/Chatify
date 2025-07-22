@@ -1,0 +1,23 @@
+{
+  "base_url": "https://portfolio-eight-roan-53.vercel.app",
+  "total_pages_crawled": 1,
+  "total_unique_links_discovered": 1,
+  "crawled_pages": [
+    "https://portfolio-eight-roan-53.vercel.app"
+  ],
+  "all_discovered_links": [
+    "https://portfolio-eight-roan-53.vercel.app"
+  ],
+  "page_details": {
+    "https://portfolio-eight-roan-53.vercel.app": {
+      "title": "Alok Pandey - AI/ML Professional Portfolio",
+      "links_found": [],
+      "links_count": 0
+    }
+  },
+  "summary": {
+    "pages_successfully_crawled": 1,
+    "unique_links_found_total": 1,
+    "average_links_per_page": 0.0
+  }
+}

@@ -16,11 +16,9 @@ from scraper.scraper_module import WebScraper
 from analytics.analytics_module import AnalyticsModule
 from ai.ai_module import ChatbotGenerator  # AI Module should import dotenv
 # from chatbot_backend.backend_module import ChatbotBackend
-# from chatbot_ui.chat_ui_generator import ChatbotUIBuilder
 # from composer.composer_module import Composer
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
-
 app = FastAPI()
 
 app.add_middleware(
@@ -70,26 +68,32 @@ async def scan_website(request: ScanRequest):
         analytics.run()
         logging.info("✅ Text extraction and analysis completed")
 
-        # ✅ Step 4: AI Module only — let it run the full pipeline
-        logging.info("🤖 Step 4: Letting AI module run the full Q&A pipeline...")
+        # Step 4: AI Module - Generate Q&A pairs and UI
+        logging.info("🤖 Step 4: Generating Q&A and UI with the AI module...")
         ai = ChatbotGenerator(
-            text_data_path=f"{working_dir}/text_extracted.json",
-            tag_clustered_path=f"{working_dir}/clustered_by_tag.json",
-            reordered_path=f"{working_dir}/ordered_content.json",
-            qa_output_path=f"{working_dir}/final_qa_output.json",
-            css_path=f"{working_dir}/css_only.json",
-            ui_output_dir=f"{working_dir}/chatbot_ui"
+            output_dir=f"{working_dir}/chatbot_output"  # Updated output directory
         )
-        ai.run_pipeline()
-        logging.info("✅ AI module completed full Q&A + UI pipeline")
+
+        # Pass content lines to the AI module directly
+        with open(f"{working_dir}/text_extracted.json", 'r', encoding='utf-8') as f:
+            text_data = json.load(f)
+        content_lines = [item['text'] for item in text_data]  # Extract text content
+        
+        ai.generate_qa_pairs(content_lines)  # Generate Q&A pairs
+        ui_files = ai.generate_ui()         # Generate UI files
+        ai.save_data(ui_files)              # Save generated data and files
+        ai.debug_and_validate()            # Debug and validate
+
+        logging.info("✅ AI module completed Q&A and UI generation")
 
         # Final check
-        qa_file = f"{working_dir}/final_qa_output.json"
-        if not os.path.exists(qa_file):
-            raise Exception("AI module failed to generate Q&A data")
+        output_dir = f"{working_dir}/chatbot_output"
+        if not os.path.exists(output_dir):
+            raise Exception("AI module failed to generate output")
 
-        qa_file_size = os.path.getsize(qa_file)
-        logging.info(f"📝 Generated Q&A file size: {qa_file_size} bytes")
+        # Calculate total output size
+        total_size = sum(os.path.getsize(os.path.join(output_dir, f)) for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f)))
+        logging.info(f"📝 Total AI output size: {total_size} bytes")
 
         # Zip results
         logging.info("🗜️ Step 5: Creating zip package...")
@@ -97,7 +101,7 @@ async def scan_website(request: ScanRequest):
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for root, _, files in os.walk(f"{working_dir}/chatbot_ui"):
                 for file in files:
-                    full_path = os.path.join(root, file)
+                    full_path = os.path.join(output_dir, file)
                     rel_path = os.path.relpath(full_path, f"{working_dir}/chatbot_ui")
                     zipf.write(full_path, rel_path)
 
@@ -107,8 +111,8 @@ async def scan_website(request: ScanRequest):
         return {
             "message": "Website processed successfully with AI-generated Q&A",
             "download_url": "/download/chatbot_package.zip",
-            "qa_generated": True,
-            "qa_file_size": qa_file_size
+            "output_generated": True,
+            "output_size": total_size
         }
 
     except Exception as e:
@@ -144,4 +148,4 @@ def get_status():
 
 @app.get("/")
 def root():
-    return {"message": "✅ Chatify backend ready - AI Q&A generation enabled"}
+    return {"message": "✅ Chatify backend ready - AI Q&A and chatbot generation enabled"}
