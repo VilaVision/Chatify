@@ -5,27 +5,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chatify - Website Analyzer</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    }
+    
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-message {
+      animation: slideInUp 0.3s ease-out;
+    }
+    
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+      }
+    }
+    
+    .floating-orb {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #6366f1, #8b5cf6, #d946ef, #ec4899);
+      opacity: 0.08;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .typing-indicator {
+      display: inline-flex;
+      gap: 4px;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8b5cf6;
+      animation: typing 1.4s ease-in-out infinite;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+    
+    .hover-lift {
+      transition: all 0.3s ease;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .neon-text {
+      text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+    }
+    
+    .scrollbar-hide {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white h-screen flex flex-col">
-
-  <!-- Header -->
-  <div class="bg-gray-800 p-4 text-center shadow-md">
-    <h1 class="text-2xl font-bold text-pink-500">🤖 Chatify</h1>
-    <p class="text-sm text-gray-300">AI-powered Website Analyzer</p>
-  </div>
-
-  <!-- Chat Area -->
-  <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4">
-    <div class="bg-gray-800 p-3 rounded-lg text-sm">
-      <span class="font-bold">Chatbot:</span> Welcome! Enter a website URL or path for analysis.
+<body class="min-h-screen gradient-bg relative overflow-hidden">
+  <!-- Floating Background Elements -->
+  <div class="floating-orb w-32 h-32 top-10 left-10" style="animation-delay: 0s;"></div>
+  <div class="floating-orb w-24 h-24 top-1/3 right-20" style="animation-delay: 2s;"></div>
+  <div class="floating-orb w-40 h-40 bottom-20 left-1/4" style="animation-delay: 4s;"></div>
+  <div class="floating-orb w-20 h-20 bottom-1/3 right-10" style="animation-delay: 1s;"></div>
+  
+  <div class="relative z-10 h-screen flex flex-col">
+    <!-- Header -->
+    <div class="glass-effect backdrop-blur-xl p-6 text-center shadow-2xl">
+      <div class="flex items-center justify-center space-x-3 mb-2">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-2xl pulse-glow">
+          🤖
+        </div>
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent neon-text">
+          Chatify
+        </h1>
+      </div>
+      <p class="text-lg text-gray-400 font-light">AI-Powered Website Intelligence</p>
+      <div class="mt-3 w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mx-auto"></div>
     </div>
-  </div>
 
-  <!-- Input Area -->
-  <div class="flex p-4 bg-gray-800">
-    <input id="userInput" type="text" class="flex-1 p-2 bg-gray-700 text-white rounded-lg"
-      placeholder="https://example.com or C:\\site\\index.html" />
-    <button id="sendBtn" class="ml-3 bg-pink-600 text-white rounded-lg px-4 py-2">Send</button>
+    <!-- Chat Area -->
+    <div id="chatArea" class="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-4">
+      <div class="chat-message glass-effect p-4 rounded-2xl max-w-2xl hover-lift">
+        <div class="flex items-start space-x-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-sm">
+            🤖
+          </div>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-indigo-300 mb-1">Chatify Assistant</div>
+            <div class="text-gray-300">
+              Welcome to the future of chatbot generation 🚀<br>
+              Drop in any website URL or local file path and watch the magic happen.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="glass-effect backdrop-blur-xl p-6 border-t border-white/20">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center space-x-4">
+          <div class="flex-1 relative">
+            <input 
+              id="userInput" 
+              type="text" 
+              class="w-full p-4 bg-white/10 backdrop-blur-md text-white rounded-2xl border border-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+              placeholder="✨ Enter website URL or file path..." 
+            />
+            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+              <div class="text-gray-400">🔗</div>
+            </div>
+          </div>
+          <button 
+            id="sendBtn" 
+            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl px-8 py-4 font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span class="flex items-center space-x-2">
+              <span>Analyze</span>
+              <span class="text-lg">🚀</span>
+            </span>
+          </button>
+        </div>
+        
+        <!-- Quick Examples -->
+        <div class="mt-4 flex flex-wrap gap-2 justify-center">
+          <button class="quick-example px-3 py-1 bg-white/10 rounded-full text-xs text-gray-300 hover:bg-white/20 transition-all duration-200" data-url="https://example.com">
+            📱 example.com
+          </button>
+          <button class="quick-example px-3 py-1 bg-white/10 rounded-full text-xs text-gray-300 hover:bg-white/20 transition-all duration-200" data-url="https://github.com">
+            🐙 github.com
+          </button>
+          <button class="quick-example px-3 py-1 bg-white/10 rounded-full text-xs text-gray-300 hover:bg-white/20 transition-all duration-200" data-url="C:\\site\\index.html">
+            📁 Local file
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -33,24 +201,64 @@
     const userInput = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
 
-    function addMessage(message, sender = "bot") {
+    // Quick example buttons
+    document.querySelectorAll('.quick-example').forEach(btn => {
+      btn.addEventListener('click', () => {
+        userInput.value = btn.dataset.url;
+        userInput.focus();
+      });
+    });
+
+    function addMessage(message, sender = "bot", isTyping = false) {
       const msg = document.createElement("div");
-      msg.className = `p-3 rounded-lg text-sm ${sender === "user" ? "bg-gray-800" : "bg-gray-700"}`;
-      msg.innerHTML = `<span class="font-bold">${sender === "user" ? "User" : "Chatbot"}:</span> ${message}`;
+      msg.className = `chat-message glass-effect p-4 rounded-2xl max-w-2xl hover-lift ${sender === "user" ? "ml-auto" : ""}`;
+      
+      const avatar = sender === "user" ? "👤" : "🤖";
+      const name = sender === "user" ? "You" : "Chatify Assistant";
+      const gradientClass = sender === "user" ? "from-green-500 to-blue-500" : "from-blue-500 to-purple-500";
+      
+      msg.innerHTML = `
+        <div class="flex items-start space-x-3 ${sender === "user" ? "flex-row-reverse space-x-reverse" : ""}">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center text-sm">
+            ${avatar}
+          </div>
+          <div class="flex-1">
+            <div class="text-sm font-medium ${sender === "user" ? "text-green-300" : "text-purple-300"} mb-1">${name}</div>
+            <div class="text-gray-200 ${isTyping ? "flex items-center space-x-2" : ""}">
+              ${isTyping ? `<span>${message}</span><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>` : message}
+            </div>
+          </div>
+        </div>
+      `;
+      
       chatArea.appendChild(msg);
       chatArea.scrollTop = chatArea.scrollHeight;
+      return msg;
     }
 
     function showDownloadLink(downloadUrl) {
-      const linkBlock = `
-        <div class="p-3 rounded-lg bg-gray-700 text-sm mt-3">
-          <span class="font-bold">Chatbot:</span> ✅ Analysis complete!<br />
-          <a href="http://127.0.0.1:8000${downloadUrl}" download class="mt-2 inline-block text-pink-400 hover:underline">
-            📦 Download Chatbot Package
-          </a>
+      const linkBlock = document.createElement("div");
+      linkBlock.className = "chat-message glass-effect p-4 rounded-2xl max-w-2xl hover-lift";
+      linkBlock.innerHTML = `
+        <div class="flex items-start space-x-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-sm">
+            ✅
+          </div>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-purple-300 mb-1">Chatify Assistant</div>
+            <div class="text-gray-200 mb-3">
+              🎉 Analysis complete! Your personalized chatbot package is ready.
+            </div>
+            <a href="http://127.0.0.1:8000${downloadUrl}" download 
+               class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+              <span>📦</span>
+              <span>Download Chatbot Package</span>
+              <span>⬇️</span>
+            </a>
+          </div>
         </div>
       `;
-      chatArea.insertAdjacentHTML("beforeend", linkBlock);
+      chatArea.appendChild(linkBlock);
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
@@ -62,7 +270,7 @@
       userInput.value = "";
       sendBtn.disabled = true;
 
-      addMessage("🔍 Analyzing, please wait...");
+      const typingMsg = addMessage("Analyzing your website", "bot", true);
 
       fetch("http://127.0.0.1:8000/api/scan", {
         method: "POST",
@@ -71,15 +279,19 @@
       })
         .then(res => res.json())
         .then(data => {
+          // Remove typing indicator
+          typingMsg.remove();
+          
           if (data.message && data.download_url) {
-            addMessage(`✅ ${data.message}`);
-            showDownloadLink(data.download_url);
+            addMessage(`🎯 ${data.message}`);
+            setTimeout(() => showDownloadLink(data.download_url), 500);
           } else {
-            addMessage("❌ Could not process the input.");
+            addMessage("❌ Hmm, I couldn't process that input. Please check the format and try again.");
           }
         })
         .catch(() => {
-          addMessage("🚫 Server error. Ensure backend is running on port 8000.");
+          typingMsg.remove();
+          addMessage("🚫 Connection failed. Make sure the backend server is running on port 8000.");
         })
         .finally(() => {
           sendBtn.disabled = false;
@@ -88,9 +300,20 @@
 
     sendBtn.addEventListener("click", handleSubmit);
     userInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") handleSubmit();
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    });
+
+    // Add some interactive polish
+    userInput.addEventListener('focus', () => {
+      userInput.parentElement.classList.add('ring-2', 'ring-purple-400');
+    });
+
+    userInput.addEventListener('blur', () => {
+      userInput.parentElement.classList.remove('ring-2', 'ring-purple-400');
     });
   </script>
-
 </body>
 </html>
